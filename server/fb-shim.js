@@ -8,7 +8,7 @@ window.__MF_PUBLIC=1;window.__MF_SLOW=1.7;
 firebase.initializeApp(cfg);
 const auth=firebase.auth(),rdb=firebase.database(),TS=firebase.database.ServerValue.TIMESTAMP;
 let uid=null,offset=0;
-const authP=new Promise(res=>{let done=false;const fin=v=>{if(!done){done=true;res(v)}};auth.onAuthStateChanged(u=>{if(u){uid=u.uid;fin(u.uid)}});auth.signInAnonymously().catch(e=>{console.warn('익명 로그인 실패',e);fin(null)});setTimeout(()=>fin(uid),9000)});
+const authP=new Promise(res=>{let done=false;const fin=v=>{if(!done){done=true;res(v)}};auth.onAuthStateChanged(u=>{if(u){uid=u.uid;fin(u.uid)}});const tryIn=n=>{if(uid)return;auth.signInAnonymously().catch(e=>{console.warn('익명 로그인 다시 시도',e&&e.code);if(n>0)setTimeout(()=>tryIn(n-1),1500)})};tryIn(3);setTimeout(()=>fin(uid),9000)});
 rdb.ref('.info/serverTimeOffset').on('value',s=>{offset=s.val()||0});
 const ROOT='mf';
 const COLS=['lots','cheers','pebbles','tree'];
